@@ -13,6 +13,7 @@ class Capybara::Mechanize::Browser < Capybara::RackTest::Browser
     @agent = ::Mechanize.new
     @agent.redirect_ok = false
     @agent.user_agent = default_user_agent
+    @agent.verify_mode = OpenSSL::SSL::VERIFY_NONE
     super
   end
 
@@ -63,8 +64,15 @@ class Capybara::Mechanize::Browser < Capybara::RackTest::Browser
     end
   end
 
-  def find(selector)
-    dom.xpath(selector).map { |node| Capybara::Mechanize::Node.new(self, node) }
+  def find(selector_type, selector)
+    case selector_type
+    when :xpath
+      dom.xpath(selector).map { |node| Capybara::Mechanize::Node.new(self, node) }
+    when :css
+      dom.css(selector).map { |node| Capybara::Mechanize::Node.new(self, node) }
+    else
+      raise "unsupported selector type: #{selector_type}. Please use :css or :xpath."
+    end
   end
 
   attr_reader :agent
